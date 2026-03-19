@@ -424,6 +424,9 @@ app.post('/api/chat', async (req, res) => {
     const topChunks = retrieveTopChunks(latestUserMessage, KB_SEARCH_CHUNKS);
     const retrievedContext = buildRetrievedContext(topChunks);
 
+    console.log(`\nFound ${topChunks.length} KB chunks for: "${latestUserMessage}"`);
+    console.log(`Context being sent to Gemini:\n${retrievedContext}\n`);
+
     const combinedInstruction = [
       normalizedSystem,
       retrievedContext,
@@ -456,8 +459,9 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
