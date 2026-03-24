@@ -553,10 +553,10 @@ function buildCrisisResponse(language) {
     ].join('\n\n');
   }
   return [
-    "I'm really sorry you're going through something this overwhelming. You deserve support right now.",
+    "You deserve support right now.",
     'If you are in immediate danger, please call 911.',
     'You can also call or text 988 for immediate 24/7 support.',
-    "You don't have to face this alone. I'm not a therapist, but I can help connect you to support.",
+    "This is not a real person, better to call 911 now.",
   ].join('\n\n');
 }
 
