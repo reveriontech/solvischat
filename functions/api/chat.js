@@ -820,8 +820,9 @@ export async function onRequestPost(context) {
   try {
     const { system, messages } = await context.request.json();
 
-    const apiKey = context.env.GEMINI_API_KEY;
-    
+    const apiKey = String(context.env.GEMINI_API_KEY ?? '').trim();
+    const modelName = String(context.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite').trim() || 'gemini-2.5-flash-lite';
+
     if (!apiKey) {
       return new Response(JSON.stringify({ 
         error: 'API key not configured' 
@@ -904,11 +905,12 @@ export async function onRequestPost(context) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
           contents: geminiContents,
@@ -954,6 +956,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
+    console.error('chat function error:', error);
     return new Response(JSON.stringify({ 
       error: 'An error occurred while processing your request.' 
     }), {

@@ -410,7 +410,8 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { system, messages } = req.body;
 
-    if (!process.env.GEMINI_API_KEY) {
+    const geminiApiKey = String(process.env.GEMINI_API_KEY ?? '').trim();
+    if (!geminiApiKey) {
       return res.status(500).json({ 
         error: 'API key not configured. Please set GEMINI_API_KEY environment variable.' 
       });
@@ -459,13 +460,14 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+    const modelName = String(process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite').trim() || 'gemini-2.5-flash-lite';
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
         },
         body: JSON.stringify({
           contents: geminiContents,
