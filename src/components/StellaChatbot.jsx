@@ -689,6 +689,16 @@ const loadPersistedUserName = () => {
 
 export default function StellaChatbot() {
   const isEmbedMode = new URLSearchParams(window.location.search).get('embed') === '1';
+  const isWidgetQueryMode = new URLSearchParams(window.location.search).get('widget') === 'true';
+  const isIframe = (() => {
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true;
+    }
+  })();
+  const isWidgetMode = isWidgetQueryMode || isIframe;
+  const isCompactMode = isEmbedMode || isWidgetMode;
   const [messages, setMessages] = useState(loadPersistedMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -953,16 +963,16 @@ You're not a therapist - you're a friendly guide helping people find the right s
   return (
     <div style={{
       minHeight: '100vh',
-      background: isEmbedMode ? 'transparent' : 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%)',
+      background: isCompactMode ? 'transparent' : 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%)',
       fontFamily: '"Literata", "Georgia", serif',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: isEmbedMode ? '0' : '20px',
+      padding: isCompactMode ? '0' : '20px',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {!isEmbedMode && (
+      {!isCompactMode && (
         <>
           {/* Background decorative elements */}
           <div style={{
@@ -993,23 +1003,24 @@ You're not a therapist - you're a friendly guide helping people find the right s
       {/* Main chat container */}
       <div style={{
         width: '100%',
-        maxWidth: isEmbedMode ? 'none' : '800px',
-        height: isEmbedMode ? '100vh' : '85vh',
-        maxHeight: isEmbedMode ? 'none' : '700px',
-        background: isEmbedMode ? 'transparent' : 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: isEmbedMode ? 'none' : 'blur(20px)',
-        borderRadius: isEmbedMode ? '0' : '24px',
-        boxShadow: isEmbedMode ? 'none' : '0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08)',
+        maxWidth: isWidgetMode ? '350px' : (isCompactMode ? 'none' : '800px'),
+        height: isCompactMode ? '100vh' : '85vh',
+        maxHeight: isCompactMode ? 'none' : '700px',
+        background: isCompactMode ? 'transparent' : 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: isCompactMode ? 'none' : 'blur(20px)',
+        borderRadius: isCompactMode ? '0' : '24px',
+        boxShadow: isCompactMode ? 'none' : '0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        border: isEmbedMode ? 'none' : '1px solid rgba(139, 92, 246, 0.24)',
+        border: isCompactMode ? 'none' : '1px solid rgba(139, 92, 246, 0.24)',
         position: 'relative'
       }}>
         {/* Header */}
+        {!isWidgetMode ? (
         <div style={{
           background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-          padding: isEmbedMode ? '16px 20px' : '24px 28px',
+          padding: isCompactMode ? '16px 20px' : '24px 28px',
           borderBottom: '3px solid rgba(255, 255, 255, 0.3)',
           position: 'relative',
           overflow: 'hidden'
@@ -1027,7 +1038,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
           }} />
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {!isEmbedMode && (
+              {!isCompactMode && (
                 <div style={{
                   width: '56px',
                   height: '56px',
@@ -1045,7 +1056,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
               <div>
                 <h1 style={{
                   margin: 0,
-                  fontSize: isEmbedMode ? '22px' : '26px',
+                  fontSize: isCompactMode ? '22px' : '26px',
                   fontWeight: 700,
                   color: '#ffffff',
                   letterSpacing: '-0.5px',
@@ -1053,7 +1064,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
                 }}>
                   Stella
                 </h1>
-                {!isEmbedMode && (
+                {!isCompactMode && (
                   <p style={{
                     margin: '2px 0 0 0',
                     fontSize: '14px',
@@ -1065,7 +1076,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
                 )}
               </div>
             </div>
-            {isEmbedMode ? (
+            {isCompactMode ? (
               <button
                 onClick={toggleLanguage}
                 title={`Language: ${languageMeta[language].label}`}
@@ -1130,6 +1141,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
             )}
           </div>
         </div>
+        ) : null}
 
         {/* Messages area */}
         <div
@@ -1137,11 +1149,11 @@ You're not a therapist - you're a friendly guide helping people find the right s
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '28px',
+            padding: isWidgetMode ? '14px' : '28px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
-            background: isEmbedMode
+            gap: isWidgetMode ? '12px' : '20px',
+            background: isCompactMode
               ? 'transparent'
               : 'linear-gradient(to bottom, rgba(255, 245, 231, 0.3) 0%, rgba(255, 248, 225, 0.5) 100%)'
           }}
@@ -1159,8 +1171,8 @@ You're not a therapist - you're a friendly guide helping people find the right s
             >
               <div
                 style={{
-                  maxWidth: '75%',
-                  padding: '16px 20px',
+                  maxWidth: isWidgetMode ? '88%' : '75%',
+                  padding: isWidgetMode ? '12px 14px' : '16px 20px',
                   borderRadius: message.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                   background: message.role === 'user'
                     ? 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)'
@@ -1170,7 +1182,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
                     ? '0 4px 16px rgba(109, 40, 217, 0.32)'
                     : '0 4px 16px rgba(0, 0, 0, 0.08)',
                   border: message.role === 'user' ? 'none' : '1px solid rgba(139, 92, 246, 0.18)',
-                  fontSize: '15px',
+                  fontSize: isWidgetMode ? '14px' : '15px',
                   lineHeight: '1.6',
                   fontFamily: '"Inter", sans-serif',
                   whiteSpace: 'pre-wrap',
@@ -1222,8 +1234,8 @@ You're not a therapist - you're a friendly guide helping people find the right s
 
         {/* Input area */}
         <div style={{
-          padding: '20px 24px',
-          background: isEmbedMode
+          padding: isWidgetMode ? '10px 12px' : '20px 24px',
+          background: isCompactMode
             ? 'transparent'
             : 'linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)',
           borderTop: '1px solid rgba(139, 92, 246, 0.18)',
@@ -1242,13 +1254,13 @@ You're not a therapist - you're a friendly guide helping people find the right s
               disabled={isLoading}
               style={{
                 flex: 1,
-                padding: '14px 18px',
+                padding: isWidgetMode ? '10px 12px' : '14px 18px',
                 borderRadius: '16px',
                 border: '2px solid rgba(139, 92, 246, 0.28)',
-                fontSize: '15px',
+                fontSize: isWidgetMode ? '14px' : '15px',
                 fontFamily: '"Inter", sans-serif',
                 resize: 'none',
-                minHeight: '52px',
+                minHeight: isWidgetMode ? '44px' : '52px',
                 maxHeight: '120px',
                 outline: 'none',
                 background: '#ffffff',
@@ -1274,7 +1286,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
                   : 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
                 border: 'none',
                 borderRadius: '16px',
-                padding: '14px 20px',
+                padding: isWidgetMode ? '10px 12px' : '14px 20px',
                 cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1283,8 +1295,8 @@ You're not a therapist - you're a friendly guide helping people find the right s
                 boxShadow: isLoading || !input.trim()
                   ? 'none'
                   : '0 4px 16px rgba(109, 40, 217, 0.35)',
-                minWidth: '52px',
-                minHeight: '52px'
+                minWidth: isWidgetMode ? '44px' : '52px',
+                minHeight: isWidgetMode ? '44px' : '52px'
               }}
               onMouseEnter={(e) => {
                 if (!isLoading && input.trim()) {
@@ -1302,7 +1314,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
               <Send style={{ color: '#ffffff' }} size={20} />
             </button>
           </div>
-          <p style={{
+          {!isWidgetMode && <p style={{
             margin: '12px 0 0 0',
             fontSize: '12px',
             color: 'rgba(0, 0, 0, 0.5)',
@@ -1314,7 +1326,7 @@ You're not a therapist - you're a friendly guide helping people find the right s
               : language === 'es'
               ? 'Para apoyo inmediato en crisis, llama al 911'
               : '긴급 위기 지원이 필요하시면 911에 전화하세요'}
-          </p>
+          </p>}
         </div>
       </div>
 
