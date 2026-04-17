@@ -410,10 +410,10 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { system, messages } = req.body;
 
-    const geminiApiKey = String(process.env.GEMINI_API_KEY ?? '').trim();
+    const geminiApiKey = String(process.env.GEMINI_API_KEY ?? process.env.OPENAI_API_KEY ?? '').trim();
     if (!geminiApiKey) {
       return res.status(500).json({ 
-        error: 'API key not configured. Please set GEMINI_API_KEY environment variable.' 
+        error: 'API key not configured. Please set GEMINI_API_KEY (or OPENAI_API_KEY as fallback) environment variable.' 
       });
     }
 

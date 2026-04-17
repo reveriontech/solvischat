@@ -1,0 +1,56 @@
+# Build → push → deploy (Cloud Run). Defaults match service "stellachat" in us-west2.
+#
+# --- One-time (PowerShell) ---
+# gcloud config set project YOUR_PROJECT_ID
+# gcloud services enable artifactregistry.googleapis.com run.googleapis.com cloudbuild.googleapis.com
+# gcloud artifacts repositories create solvischat --repository-format=docker --location=us-west2
+#
+# Cloud Build must deploy to Run (replace PROJECT_ID / project number):
+#   $PROJECT_ID = gcloud config get-value project
+#   $N = gcloud projects describe $PROJECT_ID --format="value(projectNumber)"
+#   $CB = "${N}@cloudbuild.gserviceaccount.com"
+#   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$CB" --role="roles/run.admin"
+#   gcloud iam service-accounts add-iam-policy-binding "${N}-compute@developer.gserviceaccount.com" `
+#     --member="serviceAccount:$CB" --role="roles/iam.serviceAccountUser" --project=$PROJECT_ID
+#
+# --- Submit ---
+#   pwsh -File scripts/deploy-cloud-run.ps1
+#   npm run deploy:gcp
+# Or: gcloud builds submit --config=cloudbuild.yaml .
+
+substitutions:
+  _REGION: us-west2
+  _AR_REPO: solvischat
+  _SERVICE_NAME: stellachat
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE_NAME}:$BUILD_ID
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE_NAME}:$BUILD_ID
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE_NAME}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --allow-unauthenticated
+      - --memory=512Mi
+      - --cpu=1
+      - --max-instances=10
+      - --timeout=120
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -899,7 +899,14 @@ You're not a therapist - you're a friendly guide helping people find the right s
         })
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { error: `Non-JSON response from /api/chat (HTTP ${response.status})` };
+
+      if (!response.ok) {
+        throw new Error(data?.error || `Request failed (HTTP ${response.status})`);
+      }
       
       if (data.content && data.content.length > 0) {
         await animateAssistantResponse(sanitizeAssistantText(data.content[0].text));
@@ -908,7 +915,15 @@ You're not a therapist - you're a friendly guide helping people find the right s
       }
     } catch (error) {
       console.error('API unavailable, using local FAQ:', error);
-      if (nameFromInput) {
+      const msg = String(error?.message || '');
+      if (/api key not configured/i.test(msg)) {
+        const operatorHints = {
+          en: "The chat system is currently offline. If you need assistance, please contact the Casa de la Familia team at (877) 611-2272.",
+          es: "El sistema de chat está fuera de servicio en este momento. Si necesita ayuda, comuníquese con el equipo de Casa de la Familia al (877) 611-2272.",
+          ko: "현재 채팅 시스템이 오프라인 상태입니다. 도움이 필요하시면 Casa de la Familia 팀 (877) 611-2272로 연락해 주세요.",
+        };
+        await animateAssistantResponse(operatorHints[detectedLanguage] || operatorHints.en);
+      } else if (nameFromInput) {
         const nameGreetings = {
           en: `Hi ${nameFromInput}! It's great to meet you. I'm Stella from Casa de la Familia. What can I help you with today?`,
           es: `¡Hola ${nameFromInput}! Mucho gusto en conocerte. Soy Stella de Casa de la Familia. ¿En qué te puedo ayudar hoy?`,
@@ -939,9 +954,9 @@ You're not a therapist - you're a friendly guide helping people find the right s
     });
     
     const langMessages = {
-      en: 'Switching to English! What\'s on your mind?',
-      es: '¡Listo, hablemos en español! ¿Qué necesitas?',
-      ko: '한국어로 대화할게요! 무엇이 궁금하세요?'
+      en: "Yes, I can chat in English! What's on your mind?",
+      es: "¡Sí, puedo chatear en español! ¿Qué tienes en mente?",
+      ko: "네, 한국어로 대화할 수 있어요! 무엇이 궁금하세요?"
     };
     
     const nextLang = language === 'en' ? 'es' : language === 'es' ? 'ko' : 'en';

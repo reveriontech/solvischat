@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.local
+*.md
+coverage
+.vscode
+.cursor
+terminals
+functions/api/chat.js
+wrangler.toml
+scripts

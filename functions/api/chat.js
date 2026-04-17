@@ -820,7 +820,7 @@ export async function onRequestPost(context) {
   try {
     const { system, messages } = await context.request.json();
 
-    const apiKey = String(context.env.GEMINI_API_KEY ?? '').trim();
+    const apiKey = String(context.env.GEMINI_API_KEY ?? context.env.OPENAI_API_KEY ?? '').trim();
     const modelName = String(context.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite').trim() || 'gemini-2.5-flash-lite';
 
     if (!apiKey) {
